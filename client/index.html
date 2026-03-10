@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>暴走摩托：双人载具 - Road Rage Online Mayhem</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="screen-login" class="screen active">
+        <div class="login-container">
+            <h1>🏍️ 暴走摩托：双人载具</h1>
+            <h2>Road Rage Online Mayhem</h2>
+            <div class="login-form">
+                <input type="text" id="username" placeholder="用户名 / Username" maxlength="20">
+                <input type="password" id="password" placeholder="密码 / Password" maxlength="20">
+                <button id="btn-login" class="btn-primary">登录 / Login</button>
+                <p class="hint">新用户将自动注册 / New users auto-register</p>
+            </div>
+            <div id="connection-status" class="status disconnected">未连接 / Disconnected</div>
+        </div>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="screen-lobby" class="screen">
+        <div class="lobby-container">
+            <h2>🏠 游戏大厅 / Game Lobby</h2>
+            <div class="lobby-info">
+                <span id="player-name"></span>
+                <span id="player-stats"></span>
+            </div>
+
+            <div class="lobby-sections">
+                <div class="section">
+                    <h3>创建房间 / Create Room</h3>
+                    <input type="text" id="room-name" placeholder="房间名称 / Room Name" value="Race Room">
+                    <div class="role-select">
+                        <label>
+                            <input type="radio" name="role" value="1" checked> 🏍️ 驾驶员 / Driver
+                        </label>
+                        <label>
+                            <input type="radio" name="role" value="2"> 👊 乘客 / Passenger
+                        </label>
+                    </div>
+                    <div class="ai-select">
+                        <label>AI 对手 / AI Opponents:
+                            <select id="ai-count">
+                                <option value="0">无 / None</option>
+                                <option value="2" selected>2 (1 motorcycle)</option>
+                                <option value="4">4 (2 motorcycles)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <button id="btn-create-room" class="btn-primary">创建并开始 / Create & Start</button>
+                </div>
+
+                <div class="section">
+                    <h3>房间列表 / Room List</h3>
+                    <div id="room-list" class="room-list">
+                        <p class="hint">暂无房间 / No rooms available</p>
+                    </div>
+                    <button id="btn-refresh-rooms" class="btn-secondary">刷新 / Refresh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- HUD Overlay -->
+        <div id="hud">
+            <div id="hud-left">
+                <div class="hud-item">
+                    <span class="label">速度 / Speed</span>
+                    <span id="hud-speed" class="value">0</span>
+                    <span class="unit">km/h</span>
+                </div>
+                <div class="hud-item">
+                    <span class="label">平衡 / Balance</span>
+                    <div class="balance-bar">
+                        <div id="hud-balance-fill" class="balance-fill"></div>
+                    </div>
+                    <span id="hud-balance-text" class="value">100</span>
+                </div>
+                <div class="hud-item">
+                    <span class="label">距离 / Distance</span>
+                    <span id="hud-distance" class="value">0</span>
+                    <span class="unit">m</span>
+                </div>
+            </div>
+            <div id="hud-center">
+                <div id="game-message" class="game-message"></div>
+            </div>
+            <div id="hud-right">
+                <div class="hud-item">
+                    <span class="label">角色 / Role</span>
+                    <span id="hud-role" class="value">Driver</span>
+                </div>
+                <div class="hud-item">
+                    <span class="label">Tick</span>
+                    <span id="hud-tick" class="value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Help -->
+        <div id="controls-help">
+            <div id="driver-controls">
+                <strong>驾驶员 / Driver:</strong>
+                W/↑ 加速 | S/↓ 刹车 | A/← D/→ 转向
+            </div>
+            <div id="passenger-controls">
+                <strong>乘客 / Passenger:</strong>
+                1 踢击/Kick | 2 抓刹车/Brake Grab | 3 重击/Smash
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="game-over" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 id="game-over-title">🏁 比赛结束!</h2>
+            <p id="game-over-info"></p>
+            <button id="btn-back-lobby" class="btn-primary">返回大厅 / Back to Lobby</button>
+        </div>
+    </div>
+
+    <script src="js/protocol.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

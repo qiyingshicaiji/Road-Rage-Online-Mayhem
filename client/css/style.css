@@ -1,0 +1,392 @@
+/* === Road Rage Online Mayhem - Client Styles === */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* === Screens === */
+.screen {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.screen.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* === Login Screen === */
+.login-container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px 60px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.login-container h1 {
+    font-size: 2.5em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ff6b35, #f7c948);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.login-container h2 {
+    font-size: 1.2em;
+    color: #888;
+    margin-bottom: 30px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.login-form input {
+    padding: 12px 16px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #eee;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-form input:focus {
+    border-color: #ff6b35;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ff6b35, #e85d26);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-primary:hover {
+    transform: scale(1.02);
+    opacity: 0.9;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ddd;
+    border: 1px solid #555;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.hint {
+    color: #888;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.status.connected {
+    background: rgba(0, 200, 83, 0.2);
+    color: #00c853;
+}
+
+.status.disconnected {
+    background: rgba(255, 82, 82, 0.2);
+    color: #ff5252;
+}
+
+.status.connecting {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+/* === Lobby Screen === */
+.lobby-container {
+    width: 90%;
+    max-width: 900px;
+    padding: 30px;
+}
+
+.lobby-container h2 {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+.lobby-info {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.lobby-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section h3 {
+    margin-bottom: 15px;
+    color: #f7c948;
+}
+
+.section input[type="text"],
+.section select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #eee;
+    font-size: 14px;
+}
+
+.role-select {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+.role-select label {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+}
+
+.role-select label:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ai-select {
+    margin-bottom: 12px;
+}
+
+.ai-select select {
+    margin-top: 4px;
+}
+
+.room-list {
+    min-height: 120px;
+    margin-bottom: 10px;
+}
+
+.room-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.room-item:hover {
+    background: rgba(255, 107, 53, 0.2);
+}
+
+/* === Game Screen === */
+#screen-game {
+    display: none;
+    flex-direction: column;
+}
+
+#screen-game.active {
+    display: flex;
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    background: #2d5a27;
+}
+
+/* === HUD === */
+#hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+#hud-left, #hud-right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#hud-center {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.hud-item .label {
+    color: #aaa;
+    min-width: 80px;
+}
+
+.hud-item .value {
+    font-weight: bold;
+    font-size: 18px;
+    color: #fff;
+    min-width: 40px;
+    text-align: right;
+}
+
+.hud-item .unit {
+    color: #888;
+    font-size: 12px;
+}
+
+.balance-bar {
+    width: 120px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.balance-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff5252, #ffc107, #00c853);
+    border-radius: 5px;
+    transition: width 0.1s;
+    width: 100%;
+}
+
+.game-message {
+    font-size: 24px;
+    font-weight: bold;
+    color: #f7c948;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    20% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* === Controls Help === */
+#controls-help {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 30px;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #ccc;
+    pointer-events: none;
+}
+
+/* === Overlays === */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.overlay-content h2 {
+    font-size: 2em;
+    margin-bottom: 15px;
+}
+
+.overlay-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #ccc;
+}
