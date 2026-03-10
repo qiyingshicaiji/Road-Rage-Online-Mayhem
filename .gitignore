@@ -1,0 +1,21 @@
+# Build artifacts
+server/build/
+*.o
+*.d
+
+# Database files
+*.db
+
+# Node.js
+node_modules/
+gateway/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
