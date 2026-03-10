@@ -20,13 +20,9 @@
   // Game over buttons
   document.getElementById('btn-restart').addEventListener('click', () => {
     game.restart();
-    game.showScreen('menu');
-    // Auto-start offline again
-    setTimeout(() => {
-      const name = document.getElementById('player-name').value.trim() || '玩家';
-      const aiCount = parseInt(document.getElementById('ai-count').value, 10) || 2;
-      game.startOffline(name, aiCount);
-    }, 100);
+    const name = document.getElementById('player-name').value.trim() || '玩家';
+    const aiCount = parseInt(document.getElementById('ai-count').value, 10) || 2;
+    game.startOffline(name, aiCount);
   });
 
   document.getElementById('btn-menu').addEventListener('click', () => {

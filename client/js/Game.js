@@ -82,7 +82,8 @@ class Game {
           this.network.startGame(aiCount);
         }, 500);
       });
-    } catch {
+    } catch (err) {
+      console.error('Connection failed:', err.message || err);
       this.showConnectionStatus('连接失败，请使用离线模式');
       setTimeout(() => this.hideConnectionStatus(), 3000);
     }

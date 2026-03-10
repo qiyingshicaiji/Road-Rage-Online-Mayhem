@@ -76,10 +76,11 @@ wss.on('connection', (ws) => {
 
     switch (data.type) {
       case MsgType.LOGIN_REQ: {
-        playerId = `player_${playerIdCounter++}`;
+        playerId = `player_${playerIdCounter}`;
+        playerIdCounter++;
         playerName = (typeof data.name === 'string' && data.name.trim())
           ? data.name.trim().substring(0, 20)
-          : `玩家${playerIdCounter}`;
+          : `玩家${playerId.split('_')[1]}`;
 
         ws.send(JSON.stringify({
           type: MsgType.LOGIN_RES,
