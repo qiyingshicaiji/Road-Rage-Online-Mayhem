@@ -171,6 +171,8 @@ namespace RoadRage.Gameplay
             newPos.z = Mathf.Clamp(newPos.z, -halfWidth, halfWidth);
 
             // 应用位置和旋转
+            // 注意：Heading 使用数学坐标系（逆时针为正），Unity Y 轴旋转为顺时针为正，
+            // 因此需要取反角度来正确映射。
             if (rb != null)
             {
                 rb.MovePosition(newPos);
@@ -210,6 +212,17 @@ namespace RoadRage.Gameplay
         private float serverThrottle;
         private float serverSteering;
         private bool serverBrake;
+
+        /// <summary>
+        /// 设置服务器端输入（供 AI 控制器直接调用，避免 SendMessage）
+        /// </summary>
+        public void SetServerInput(float throttle, float steering, bool brake)
+        {
+            if (!IsServer) return;
+            serverThrottle = throttle;
+            serverSteering = steering;
+            serverBrake = brake;
+        }
 
         /// <summary>
         /// 驾驶员输入 → 服务器

@@ -282,19 +282,14 @@ namespace RoadRage.Gameplay
         }
 
         /// <summary>
-        /// 应用 AI 输入到载具（直接在服务器端设置）
+        /// 应用 AI 输入到载具（服务器端直接调用）
         /// </summary>
         private void ApplyAIInput(float throttle, float steering, bool brake)
         {
-            // AI 直接调用 ServerRpc（因为已经在服务器上运行）
-            // 需要通过反射或直接设置载具输入
-            // 这里用一个简化方式：直接操作载具的公共方法
-
-            // 由于 AI 在服务器上运行，我们可以直接通过 VehicleController 的接口
-            // 在实际实现中，可能需要一个 SetAIInput 方法
-            vehicleController.SendMessage("ApplyAIInput",
-                new Vector3(throttle, steering, brake ? 1f : 0f),
-                SendMessageOptions.DontRequireReceiver);
+            if (vehicleController != null)
+            {
+                vehicleController.SetServerInput(throttle, steering, brake);
+            }
         }
 
         private static float NormalizeAngle(float angle)

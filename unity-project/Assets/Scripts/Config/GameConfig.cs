@@ -122,6 +122,9 @@ namespace RoadRage.Config
         [Tooltip("圈数")]
         public int numLaps = 3;
 
+        [Tooltip("最大载具数量（不足时 AI 补充）")]
+        public int maxVehicles = 3;
+
         [Header("=== AI ===")]
 
         [Tooltip("AI 追逐距离阈值 (米)")]

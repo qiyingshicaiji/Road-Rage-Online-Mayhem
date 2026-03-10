@@ -100,8 +100,10 @@ namespace RoadRage.UI
             var netManager = GameNetworkManager.Instance;
             if (netManager != null)
             {
-                playerInfoText.text = $"👤 {netManager.PlayerName}  |  " +
-                    $"ID: {netManager.PlayerId?[..8]}...";
+                string idDisplay = !string.IsNullOrEmpty(netManager.PlayerId) && netManager.PlayerId.Length > 8
+                    ? netManager.PlayerId.Substring(0, 8)
+                    : netManager.PlayerId ?? "N/A";
+                playerInfoText.text = $"👤 {netManager.PlayerName}  |  ID: {idDisplay}...";
             }
         }
 

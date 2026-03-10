@@ -47,7 +47,7 @@ namespace RoadRage.Network
         /// <summary>
         /// 创建 Relay 分配（主机调用）
         /// </summary>
-        /// <param name="maxConnections">最大连接数（不包括主机自身）</param>
+        /// <param name="maxConnections">最大连接数（不包括主机自身，总 CCU = maxConnections + 1）</param>
         /// <returns>Relay Allocation，失败返回 null</returns>
         public async Task<Allocation> CreateRelay(int maxConnections = 19)
         {

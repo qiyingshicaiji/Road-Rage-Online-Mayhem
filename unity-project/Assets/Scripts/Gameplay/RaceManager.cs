@@ -164,7 +164,7 @@ namespace RoadRage.Gameplay
 
             // 如果玩家少于 3 辆车，补充 AI
             int currentVehicles = spawnedVehicles.Count;
-            int aiToSpawn = Mathf.Max(0, 3 - currentVehicles); // 至少 3 辆车参赛
+            int aiToSpawn = Mathf.Max(0, config.maxVehicles - currentVehicles);
 
             for (int i = 0; i < aiToSpawn; i++)
             {
