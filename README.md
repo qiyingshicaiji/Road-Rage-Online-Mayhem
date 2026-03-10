@@ -1,159 +1,214 @@
 # 🏍️ Road Rage Online Mayhem — 暴走摩托：双人载具
 
+多人在线摩托车竞速+战斗游戏，采用独特的双人载具机制。
+
 Multiplayer online motorcycle racing + combat game featuring a unique dual-passenger vehicle mechanic.
 
-![Gameplay Screenshot](https://github.com/user-attachments/assets/8f93e303-2fa9-4024-ba9a-a7b6bab3e7f5)
-
-## Architecture
+## 架构 / Architecture
 
 ```
-┌──────────────────┐     TCP (Binary)     ┌──────────────────────┐
-│  Web Client      │◄──── WebSocket ────► │  Node.js Gateway     │
-│  (HTML5 Canvas)  │                      │  (WS ↔ TCP bridge)   │
-└──────────────────┘                      └──────────┬───────────┘
-                                                     │ TCP
-                                          ┌──────────▼───────────┐
-                                          │  C++ Game Server     │
-                                          │  (Boost.Asio)        │
-                                          │  ┌────────────────┐  │
-                                          │  │ Physics Engine  │  │
-                                          │  │ Combat System   │  │
-                                          │  │ Balance System  │  │
-                                          │  │ AI Controller   │  │
-                                          │  │ Room Management │  │
-                                          │  └────────────────┘  │
-                                          │         │            │
-                                          │    ┌────▼─────┐      │
-                                          │    │  SQLite   │      │
-                                          │    └──────────┘      │
-                                          └──────────────────────┘
+┌─────────────────────────────────────────────────┐
+│              Unity Client (C#)                  │
+│  ┌──────────┐ ┌──────────┐ ┌────────────────┐  │
+│  │ Vehicle   │ │ Combat   │ │ UI (Login,     │  │
+│  │ Physics   │ │ System   │ │  Lobby, HUD)   │  │
+│  ├──────────┤ ├──────────┤ ├────────────────┤  │
+│  │ Balance   │ │ AI       │ │ Race Manager   │  │
+│  │ System    │ │ Control  │ │                │  │
+│  └──────────┘ └──────────┘ └────────────────┘  │
+│       │             │                           │
+│  ┌────▼─────────────▼──────────────────────┐    │
+│  │  Netcode for GameObjects (Host/Client)  │    │
+│  └────────────────┬────────────────────────┘    │
+└───────────────────┼─────────────────────────────┘
+                    │ DTLS (加密 UDP)
+          ┌─────────▼─────────┐
+          │  Unity Relay      │  ← UGS 免费套餐
+          │  (20 CCU Free)    │     20人同时在线
+          └─────────┬─────────┘
+          ┌─────────▼─────────┐
+          │  Unity Lobby      │  ← 房间管理
+          │  (Room System)    │
+          └───────────────────┘
 ```
 
-## Features
+**联机方案：Unity Gaming Services (UGS) 免费套餐**
+- **Unity Relay**: NAT 穿透，免费支持 20 CCU（并发连接用户）
+- **Unity Lobby**: 房间创建/加入/管理
+- **Netcode for GameObjects**: 主机/客户端模式，服务器权威
 
-- **C++17 Game Server** — Boost.Asio async TCP networking, authoritative physics at 50ms tick rate
-- **Binary Protocol** — Custom message format: `[MsgID(2)][Seq(2)][DataLen(2)][Data]`
-- **Vehicle Physics** — Throttle, steering, braking with friction and max speed clamping
-- **Combat System** — Three attack types with distance/angle detection:
-  - 🦶 **Kick** — Close range (1.5m), 30° cone, causes loss of control
-  - 🤚 **Brake Grab** — Very close (1.0m), side-rear position, heavy deceleration
-  - 🔨 **Smash** — Medium range (2.0m), 30° forward cone, strong stun
-- **Balance System** — 0–100 points; attacks consume balance; depletion triggers 1s loss of control; passive 5 pts/sec recovery
-- **AI Opponents** — State machine (idle → chase → attack → evade) with dynamic target selection
-- **SQLite Persistence** — User accounts (auto-register), match history
-- **Room Management** — Create/join rooms, configure AI opponents, role selection (driver/passenger)
-- **Web Client** — HTML5 Canvas with top-down rendering, client-side prediction, HUD, minimap
+## 游戏特性 / Features
 
-## Prerequisites
+- **载具物理** — 油门/转向/刹车，摩擦力，最大速度 108 km/h
+- **战斗系统** — 三种攻击类型（服务器权威判定）：
+  - 🦶 **踢击 / Kick** — 1.5m, 30°锥形, 造成失控
+  - 🤚 **抓刹车 / Brake Grab** — 1.0m, 侧后方, 大幅减速
+  - 🔨 **重击 / Smash** — 2.0m, 30°前方锥形, 强力眩晕
+- **平衡系统** — 0–100 分；攻击消耗 10-20 分；归零触发 1 秒失控；被动 5 分/秒恢复
+- **AI 对手** — 状态机（空闲 → 追逐 → 攻击 → 规避）
+- **UGS 联机** — Unity Relay + Lobby，免费 20 人同时在线
+- **双人载具** — 驾驶员控制方向，乘客执行攻击
 
-- **C++ Server**: GCC 11+ or Clang 14+, CMake 3.16+, Boost 1.74+, SQLite3
-- **Gateway/Client**: Node.js 18+
+## 开发前提 / Prerequisites
 
-### Install dependencies (Ubuntu/Debian)
+- **Unity 2022.3 LTS** 或更新版本
+- Unity Hub 已安装
+- Unity 账户（用于 UGS 服务）
 
+## 快速开始 / Quick Start
+
+### 1. 用 Unity Hub 打开项目
+
+```
+Unity Hub → Open → 选择 unity-project/ 目录
+```
+
+### 2. 安装 UGS 依赖
+
+`Packages/manifest.json` 中已声明所有必需包，Unity 会自动安装：
+- `com.unity.netcode.gameobjects` — Netcode for GameObjects
+- `com.unity.services.relay` — Unity Relay
+- `com.unity.services.lobby` — Unity Lobby
+- `com.unity.services.authentication` — Unity Authentication
+- `com.unity.transport` — Unity Transport (with Relay support)
+
+### 3. 配置 UGS
+
+1. 在 Unity Editor 中：`Edit → Project Settings → Services`
+2. 连接到 Unity Dashboard 中的项目
+3. 启用 **Relay** 和 **Lobby** 服务
+4. UGS 免费套餐自动生效（20 CCU）
+
+### 4. 创建场景
+
+需要创建 3 个场景：
+
+**MainMenu 场景：**
+- 创建 Canvas → 添加 `MainMenuUI` 脚本
+- 创建空 GameObject → 添加 `GameNetworkManager`、`RelayManager`、`LobbyManager`
+- 添加 `NetworkManager` 和 `UnityTransport` 组件
+
+**Lobby 场景：**
+- 创建 Canvas → 添加 `LobbyUI` 脚本
+- 配置房间列表 UI、创建房间面板、等待面板
+
+**Game 场景：**
+- 创建 Canvas → 添加 `GameHUD` 和 `GameOverUI` 脚本
+- 创建空 GameObject → 添加 `RaceManager` 脚本
+- 创建赛道（3D 模型 + 碰撞体）
+- 配置生成点 (SpawnPoints)
+
+### 5. 创建载具 Prefab
+
+摩托车 Prefab 需要以下组件：
+- `NetworkObject`
+- `NetworkTransform`
+- `Rigidbody`
+- `VehicleController`
+- `BalanceSystem`
+- `CombatSystem`
+- `PassengerController`
+- 3D 模型 + Collider
+
+AI 载具额外添加 `AIController` 组件。
+
+### 6. 创建 GameConfig
+
+```
+Assets → Create → RoadRage → GameConfig
+```
+
+所有游戏参数可在 Inspector 中调整。
+
+## 操作方式 / Controls
+
+| 角色 | 按键 | 动作 |
+|------|------|------|
+| 驾驶员 / Driver | W / ↑ | 加速 / Accelerate |
+| 驾驶员 / Driver | S / ↓ | 刹车 / Brake |
+| 驾驶员 / Driver | A / ← | 左转 / Steer left |
+| 驾驶员 / Driver | D / → | 右转 / Steer right |
+| 乘客 / Passenger | 1 | 踢击 / Kick |
+| 乘客 / Passenger | 2 | 抓刹车 / Brake Grab |
+| 乘客 / Passenger | 3 | 重击 / Smash |
+
+## 项目结构 / Project Structure
+
+```
+├── unity-project/                        # Unity 客户端项目
+│   ├── Packages/
+│   │   └── manifest.json                 # UGS + Netcode 包依赖
+│   └── Assets/
+│       └── Scripts/
+│           ├── Network/                  # 网络层
+│           │   ├── GameNetworkManager.cs # UGS 初始化 + 认证 + 连接管理
+│           │   ├── RelayManager.cs       # Unity Relay 管理（20 CCU 免费）
+│           │   ├── LobbyManager.cs       # Unity Lobby 房间管理
+│           │   └── PlayerNetwork.cs      # 玩家网络同步
+│           ├── Gameplay/                 # 游戏逻辑
+│           │   ├── VehicleController.cs  # 载具物理（服务器权威）
+│           │   ├── BalanceSystem.cs      # 平衡系统 (0-100)
+│           │   ├── CombatSystem.cs       # 战斗系统（踢击/抓刹车/重击）
+│           │   ├── PassengerController.cs# 乘客控制 + 目标锁定
+│           │   ├── AIController.cs       # AI 状态机
+│           │   └── RaceManager.cs        # 比赛流程管理
+│           ├── UI/                       # UI 脚本
+│           │   ├── MainMenuUI.cs         # 登录界面
+│           │   ├── LobbyUI.cs            # 大厅界面
+│           │   ├── GameHUD.cs            # 游戏 HUD
+│           │   └── GameOverUI.cs         # 游戏结束界面
+│           └── Config/
+│               └── GameConfig.cs         # ScriptableObject 游戏配置
+├── server/                               # C++ 参考服务器（可选）
+│   ├── CMakeLists.txt
+│   ├── src/                              # 网络/游戏/数据模块
+│   └── tests/                            # 单元测试
+└── Introduction.md                       # 原始设计文档
+```
+
+## 联机流程 / Online Flow
+
+```
+1. 启动游戏 → MainMenuUI
+2. 自动登录 UGS (匿名认证)
+3. 进入大厅 → LobbyUI
+4. 房主创建 Lobby → 其他玩家加入
+5. 房主点击"开始" → 创建 Relay 分配 → 获取 Join Code
+6. Join Code 通过 Lobby 数据同步给所有玩家
+7. 所有玩家通过 Relay 连接 → Netcode 启动
+8. 主机加载 Game 场景（NetworkManager 同步）
+9. RaceManager 生成载具 → 倒计时 → 比赛开始
+10. 服务器权威物理 + 战斗判定
+11. 到达终点 → GameOverUI → 返回大厅
+```
+
+## UGS 免费套餐说明 / UGS Free Tier
+
+| 服务 | 免费额度 | 用途 |
+|------|----------|------|
+| **Relay** | 20 CCU | NAT 穿透，玩家间通信 |
+| **Lobby** | 免费 | 房间创建和管理 |
+| **Authentication** | 免费 | 匿名登录 |
+
+> 20 CCU = 最多 20 人同时在线游戏。对于本项目（每场 2-6 人），足够同时运行 3-10 场比赛。
+
+## C++ 参考服务器 / C++ Reference Server
+
+`server/` 目录包含独立的 C++ 游戏服务器（Boost.Asio TCP），用于：
+- 学习服务器端游戏物理实现
+- 对比 Unity Netcode 与自定义服务器架构
+- 可作为未来专用服务器的基础
+
+构建方法：
 ```bash
-sudo apt-get install -y build-essential cmake libboost-all-dev libsqlite3-dev
+cd server && mkdir build && cd build && cmake .. && make -j$(nproc)
+./test_protocol && ./test_game  # 运行测试
 ```
 
-## Build & Run
+## 设计文档 / Design Document
 
-### 1. Build the C++ Game Server
-
-```bash
-cd server
-mkdir -p build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
-```
-
-### 2. Run Tests
-
-```bash
-cd server/build
-./test_protocol   # Protocol serialization tests
-./test_game       # Vehicle physics & combat tests
-```
-
-### 3. Start the Game Server
-
-```bash
-cd server/build
-./road_rage_server 9527
-```
-
-### 4. Install Gateway Dependencies & Start
-
-```bash
-cd gateway
-npm install
-npm start          # Starts on port 3000, bridges to TCP port 9527
-```
-
-### 5. Play
-
-Open **http://localhost:3000** in your browser.
-
-1. Enter a username and password (new accounts auto-register)
-2. Create a room — select your role (Driver/Passenger) and add AI opponents
-3. Race! Use keyboard controls:
-
-| Role | Control | Action |
-|------|---------|--------|
-| Driver | W / ↑ | Accelerate |
-| Driver | S / ↓ | Brake |
-| Driver | A / ← | Steer left |
-| Driver | D / → | Steer right |
-| Passenger | 1 | Kick (close range) |
-| Passenger | 2 | Brake Grab (side-rear) |
-| Passenger | 3 | Smash (forward cone) |
-
-## Project Structure
-
-```
-├── server/                    # C++ Game Server
-│   ├── CMakeLists.txt         # Build configuration
-│   ├── src/
-│   │   ├── main.cpp           # Server entry point & message routing
-│   │   ├── network/
-│   │   │   ├── protocol.h/cpp # Binary protocol & message types
-│   │   │   ├── session.h/cpp  # Client TCP session
-│   │   │   └── tcp_server.h/cpp # Boost.Asio acceptor
-│   │   ├── game/
-│   │   │   ├── vehicle.h/cpp  # Physics simulation
-│   │   │   ├── combat.h/cpp   # Attack resolution
-│   │   │   ├── game_room.h/cpp # Room + game loop
-│   │   │   └── ai_controller.h/cpp # AI state machine
-│   │   └── data/
-│   │       └── database.h/cpp # SQLite persistence
-│   └── tests/
-│       ├── test_protocol.cpp  # Protocol unit tests
-│       └── test_game.cpp      # Game logic unit tests
-├── gateway/                   # WebSocket ↔ TCP Bridge
-│   ├── package.json
-│   └── index.js               # WS gateway + static file server
-├── client/                    # HTML5 Prototype Client
-│   ├── index.html             # Login/Lobby/Game screens
-│   ├── css/style.css          # UI styling
-│   └── js/
-│       ├── protocol.js        # Binary protocol (matches C++ server)
-│       ├── network.js         # WebSocket client
-│       ├── input.js           # Keyboard input handling
-│       ├── renderer.js        # Canvas rendering engine
-│       ├── game.js            # Client game state & prediction
-│       └── main.js            # App entry point & screen management
-└── Introduction.md            # Original design document
-```
-
-## Design Document
-
-See [Introduction.md](Introduction.md) for the full game design specification including:
-- Detailed gameplay mechanics and balance design
-- Network protocol specification
-- Database schema
-- Development roadmap (6 phases)
-
-## Notes
-
-- The C++ server is designed to also work with a Unity client (C#). The binary protocol is platform-agnostic. See Introduction.md for the Unity client module specification.
-- The web client serves as a playable prototype demonstrating the full game loop.
-- For production deployment, consider adding: TLS encryption, password hashing, rate limiting, and Redis caching as described in the design document.
+详见 [Introduction.md](Introduction.md)，包含：
+- 详细游戏机制和平衡设计
+- 网络协议规格
+- 数据库设计
+- 6 阶段开发路线图

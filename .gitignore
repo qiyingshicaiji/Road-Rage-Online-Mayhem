@@ -10,6 +10,29 @@ server/build/
 node_modules/
 gateway/node_modules/
 
+# Unity
+unity-project/Library/
+unity-project/Temp/
+unity-project/Obj/
+unity-project/Build/
+unity-project/Builds/
+unity-project/Logs/
+unity-project/UserSettings/
+unity-project/MemoryCaptures/
+unity-project/Recordings/
+unity-project/Assets/Plugins/
+unity-project/Assets/AssetStoreTools*
+*.csproj
+*.sln
+*.pidb
+*.unityproj
+*.suo
+*.user
+*.userprefs
+*.booproj
+sysinfo.txt
+crashlytics-build.properties
+
 # IDE
 .vscode/
 .idea/
