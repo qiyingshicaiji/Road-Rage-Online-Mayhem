@@ -247,10 +247,8 @@ void GameRoom::update_physics(float dt) {
         float half_width = track_.width / 2.0f;
         float y = v.y();
         if (y < -half_width || y > half_width) {
-            // Bounce off walls
             float clamped_y = std::clamp(y, -half_width, half_width);
             v.reset(v.x(), clamped_y, v.angle());
-            // Re-apply some state
         }
     }
 }

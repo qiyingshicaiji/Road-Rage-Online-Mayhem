@@ -149,12 +149,15 @@ class GameRenderer {
             ctx.stroke();
         }
 
-        // Grass texture (simple dots)
+        // Grass texture (simple dots, seeded for consistent appearance)
         ctx.fillStyle = '#1e4d1e';
         const grassExtent = 30;
         for (let x = -50; x < trackLength + 50; x += 10) {
             for (let side = -1; side <= 1; side += 2) {
-                const gy = side * (trackWidth / 2 + 5 + Math.random() * grassExtent);
+                // Seeded pseudo-random based on position for deterministic rendering
+                const seed = (x * 7 + side * 13) & 0xFFFF;
+                const pseudoRand = ((seed * 1103515245 + 12345) >>> 16) / 32768.0;
+                const gy = side * (trackWidth / 2 + 5 + pseudoRand * grassExtent);
                 const gScreen = this.worldToScreen(x, gy);
                 if (gScreen.x > -50 && gScreen.x < this.canvas.width + 50 &&
                     gScreen.y > -50 && gScreen.y < this.canvas.height + 50) {

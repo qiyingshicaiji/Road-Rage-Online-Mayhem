@@ -1,8 +1,12 @@
 #include "game/vehicle.h"
 #include <algorithm>
-#include <cstdlib>
+#include <random>
 
 namespace roadrage {
+
+// Thread-local random engine for out-of-control swerving
+static thread_local std::mt19937 t_rng{std::random_device{}()};
+static thread_local std::uniform_real_distribution<float> t_swerve_dist(-1.0f, 1.0f);
 
 Vehicle::Vehicle(uint32_t id, float start_x, float start_y, float start_angle)
     : id_(id), pos_x_(start_x), pos_y_(start_y), angle_(start_angle)
@@ -15,7 +19,7 @@ void Vehicle::update(float dt) {
         out_of_control_timer_ -= dt;
         // Random swerving + reduced speed
         speed_ *= 0.95f;
-        angle_ += (static_cast<float>(rand() % 100) / 100.0f - 0.5f) * 2.0f * dt;
+        angle_ += t_swerve_dist(t_rng) * 2.0f * dt;
         pos_x_ += std::cos(angle_) * speed_ * dt;
         pos_y_ += std::sin(angle_) * speed_ * dt;
         distance_traveled_ += std::abs(speed_) * dt;

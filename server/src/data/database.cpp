@@ -131,17 +131,14 @@ void Database::update_user_stats(uint32_t user_id, bool won) {
 }
 
 uint32_t Database::create_match() {
-    const char* sql = "INSERT INTO match_records (match_id, player_id) VALUES (0, 0)";
+    // Use a dedicated sequence: find the max match_id and increment
+    const char* sql = "SELECT COALESCE(MAX(match_id), 0) + 1 FROM match_records";
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db_, sql, -1, &stmt, nullptr);
-    sqlite3_step(stmt);
-    uint32_t id = static_cast<uint32_t>(sqlite3_last_insert_rowid(db_));
-    sqlite3_finalize(stmt);
-    // Remove the placeholder
-    const char* del = "DELETE FROM match_records WHERE record_id = ?";
-    sqlite3_prepare_v2(db_, del, -1, &stmt, nullptr);
-    sqlite3_bind_int(stmt, 1, static_cast<int>(id));
-    sqlite3_step(stmt);
+    uint32_t id = 1;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        id = static_cast<uint32_t>(sqlite3_column_int(stmt, 0));
+    }
     sqlite3_finalize(stmt);
     return id;
 }
