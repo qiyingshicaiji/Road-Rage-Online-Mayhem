@@ -1,0 +1,15 @@
+{
+  "name": "road-rage-online-mayhem",
+  "version": "0.1.0",
+  "description": "暴走摩托：双人载具 - Road Rage Online Mayhem Demo",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "client": "open client/index.html"
+  },
+  "keywords": ["game", "multiplayer", "motorcycle", "combat"],
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.17.1"
+  }
+}

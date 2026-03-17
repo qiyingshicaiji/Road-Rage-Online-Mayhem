@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>暴走摩托：双人载具 - Road Rage Online Mayhem</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Menu Screen -->
+  <div id="menu-screen" class="screen active">
+    <div class="menu-container">
+      <h1 class="game-title">🏍️ 暴走摩托 🏍️</h1>
+      <h2 class="game-subtitle">Road Rage Online Mayhem</h2>
+      <p class="game-desc">双人载具竞技对战</p>
+      <div class="menu-form">
+        <input type="text" id="player-name" placeholder="输入你的名字..." maxlength="20" value="">
+        <div class="ai-count-selector">
+          <label for="ai-count">AI 对手数量:</label>
+          <select id="ai-count">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <button id="btn-start" class="btn-primary">开始游戏</button>
+        <button id="btn-offline" class="btn-secondary">离线模式 (单机)</button>
+      </div>
+      <div class="controls-info">
+        <h3>操作说明</h3>
+        <div class="controls-grid">
+          <div class="control-group">
+            <h4>🚗 驾驶员</h4>
+            <p><kbd>W</kbd> / <kbd>↑</kbd> 加速</p>
+            <p><kbd>S</kbd> / <kbd>↓</kbd> 刹车</p>
+            <p><kbd>A</kbd> / <kbd>←</kbd> 左转</p>
+            <p><kbd>D</kbd> / <kbd>→</kbd> 右转</p>
+          </div>
+          <div class="control-group">
+            <h4>👊 乘客攻击</h4>
+            <p><kbd>J</kbd> 踢击 (近距离)</p>
+            <p><kbd>K</kbd> 捏刹车 (减速敌人)</p>
+            <p><kbd>L</kbd> 武器攻击 (远距离)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <canvas id="game-canvas"></canvas>
+    <div id="hud">
+      <div id="hud-left">
+        <div class="hud-item">
+          <span class="hud-label">速度</span>
+          <div class="hud-bar-container">
+            <div id="speed-bar" class="hud-bar speed-bar"></div>
+          </div>
+          <span id="speed-value" class="hud-value">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">平衡</span>
+          <div class="hud-bar-container">
+            <div id="balance-bar" class="hud-bar balance-bar"></div>
+          </div>
+          <span id="balance-value" class="hud-value">100</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">生命</span>
+          <div class="hud-bar-container">
+            <div id="health-bar" class="hud-bar health-bar"></div>
+          </div>
+          <span id="health-value" class="hud-value">100</span>
+        </div>
+      </div>
+      <div id="hud-right">
+        <div id="score-display">得分: <span id="score-value">0</span></div>
+        <div id="minimap-container">
+          <canvas id="minimap" width="150" height="112"></canvas>
+        </div>
+      </div>
+    </div>
+    <div id="attack-indicators">
+      <div id="attack-kick" class="attack-btn" data-attack="kick">
+        <span class="attack-key">J</span>
+        <span class="attack-name">踢击</span>
+      </div>
+      <div id="attack-brake" class="attack-btn" data-attack="brake_pinch">
+        <span class="attack-key">K</span>
+        <span class="attack-name">捏刹车</span>
+      </div>
+      <div id="attack-weapon" class="attack-btn" data-attack="weapon">
+        <span class="attack-key">L</span>
+        <span class="attack-name">武器</span>
+      </div>
+    </div>
+    <div id="connection-status">连接中...</div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="screen">
+    <div class="gameover-container">
+      <h1 id="gameover-title">游戏结束</h1>
+      <div id="standings-list"></div>
+      <button id="btn-restart" class="btn-primary">再来一局</button>
+      <button id="btn-menu" class="btn-secondary">返回菜单</button>
+    </div>
+  </div>
+
+  <script src="js/protocol.js"></script>
+  <script src="js/Network.js"></script>
+  <script src="js/InputManager.js"></script>
+  <script src="js/Renderer.js"></script>
+  <script src="js/OfflineEngine.js"></script>
+  <script src="js/Game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
