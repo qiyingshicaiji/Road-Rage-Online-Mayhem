@@ -1,238 +1,214 @@
-# Road-Rage-Online-Mayhem ── 暴走摩托：双人载具
+# 🏍️ Road Rage Online Mayhem — 暴走摩托：双人载具
 
-> 一款基于 C++ 服务器 + Unity 客户端的多人在线竞速战斗游戏
+多人在线摩托车竞速+战斗游戏，采用独特的双人载具机制。
 
-**项目状态**：规划阶段  
-**目标平台**：Windows（客户端） · Linux（服务器）
+Multiplayer online motorcycle racing + combat game featuring a unique dual-passenger vehicle mechanic.
 
----
-
-## 项目简介
-
-《暴走摩托：双人载具》是一款多人在线竞速 + 战斗游戏。玩家可在线联机，在赛道上进行混战或组队合作。游戏核心特色是 **双人载具机制**：一辆摩托车可由两名玩家分别扮演驾驶者和后座乘客，通过配合与干扰对手赢得比赛。
-
-项目采用 **C++17 编写高性能权威服务器**，**Unity (C#) 开发 3D 客户端**，展示网络同步、延迟补偿、游戏物理模拟等核心技术。
-
----
-
-## 详细文档
-
-📄 **[项目开发介绍文档 (Introduction.md)](./Introduction.md)** ── 包含完整的技术设计、玩法细节、数据库方案、可靠性设计、风险分析等。
-
----
-
-## 玩法设计
-
-### 核心机制
-- **竞速**：在固定赛道中竞速，以到达终点的顺序排名
-- **战斗**：通过踹人、捏刹车、武器敲打等方式干扰对手，所有干扰动作均影响自身车辆稳定性
-- **双人载具**：
-  - **驾驶者**：控制油门、转向、刹车，负责保持车辆平衡
-  - **后座乘客**：执行干扰动作，每次动作消耗车辆"平衡值"
-
-### 平衡值系统
-- 每辆车拥有平衡值（0~100），后座动作消耗 10~20 点
-- 平衡值随时间缓慢恢复（5 点/秒），驾驶者稳定驾驶可加速恢复
-- 平衡值归零触发失控状态（随机偏转 + 减速，持续 1 秒）
-- 参数支持配置化调整，方便后续平衡性测试
-
-### 游戏模式
-- **自由混战**：2~6 人各自为战，按到达终点顺序排名
-- **组队合作**：2 人一队（推荐 2v2 = 4 人），两队竞速，以队伍最后成员到达时间为准
-- **人机对战**：支持与 AI 对手对战，适用于玩家人数不足时填补空位
-
----
-
-## 技术架构
+## 架构 / Architecture
 
 ```
-┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
-│   Unity 客户端   │  ───→  │  C++ 游戏服务器  │  ───→  │   数据库/缓存    │
-├─────────────────┤        ├─────────────────┤        ├─────────────────┤
-│ • 3D 渲染/动画   │        │ • 网络通信(Asio) │        │ • MySQL(持久化)  │
-│ • UI/输入采集    │        │ • 房间/匹配管理   │        │ • Redis(在线状态) │
-│ • 本地预测+插值  │        │ • 权威物理计算    │        └─────────────────┘
-│ • 音效/特效      │        │ • 战斗判定       │
-└─────────────────┘        │ • 平衡值系统     │
-         ↑                 │ • AI 状态机      │
-         │                 │ • 断线重连       │
-         │                 └─────────────────┘
-         └─────── TCP(可靠事件) + UDP(实时同步) ────┘
+┌─────────────────────────────────────────────────┐
+│              Unity Client (C#)                  │
+│  ┌──────────┐ ┌──────────┐ ┌────────────────┐  │
+│  │ Vehicle   │ │ Combat   │ │ UI (Login,     │  │
+│  │ Physics   │ │ System   │ │  Lobby, HUD)   │  │
+│  ├──────────┤ ├──────────┤ ├────────────────┤  │
+│  │ Balance   │ │ AI       │ │ Race Manager   │  │
+│  │ System    │ │ Control  │ │                │  │
+│  └──────────┘ └──────────┘ └────────────────┘  │
+│       │             │                           │
+│  ┌────▼─────────────▼──────────────────────┐    │
+│  │  Netcode for GameObjects (Host/Client)  │    │
+│  └────────────────┬────────────────────────┘    │
+└───────────────────┼─────────────────────────────┘
+                    │ DTLS (加密 UDP)
+          ┌─────────▼─────────┐
+          │  Unity Relay      │  ← UGS 免费套餐
+          │  (20 CCU Free)    │     20人同时在线
+          └─────────┬─────────┘
+          ┌─────────▼─────────┐
+          │  Unity Lobby      │  ← 房间管理
+          │  (Room System)    │
+          └───────────────────┘
 ```
 
-### 核心技术栈
+**联机方案：Unity Gaming Services (UGS) 免费套餐**
+- **Unity Relay**: NAT 穿透，免费支持 20 CCU（并发连接用户）
+- **Unity Lobby**: 房间创建/加入/管理
+- **Netcode for GameObjects**: 主机/客户端模式，服务器权威
 
-| 组件 | 技术选型 | 说明 |
-|------|----------|------|
-| 游戏服务器 | C++17 + Boost.Asio | 跨平台高性能网络，Reactor 模型 |
-| 游戏客户端 | Unity 2022 LTS (C#) | 3D 渲染、动画、物理表现、UI |
-| 数据库 | MySQL + Redis | 持久化存储 + 在线状态缓存 |
-| 网络协议 | TCP + UDP | TCP：登录/房间等可靠事件；UDP：位置/状态实时同步 |
-| 序列化 | Protobuf（初期）→ 可选自定义二进制（优化期） | 兼顾开发效率与性能 |
-| 物理引擎 | 服务器：简化质点物理；客户端：Unity PhysX | 服务器权威计算，客户端视觉表现 |
-| AI | 有限状态机 (FSM) | 追逐、攻击、躲避基础行为；大模型对话为延伸目标 |
+## 游戏特性 / Features
 
-### 网络同步方案
+- **载具物理** — 油门/转向/刹车，摩擦力，最大速度 108 km/h
+- **战斗系统** — 三种攻击类型（服务器权威判定）：
+  - 🦶 **踢击 / Kick** — 1.5m, 30°锥形, 造成失控
+  - 🤚 **抓刹车 / Brake Grab** — 1.0m, 侧后方, 大幅减速
+  - 🔨 **重击 / Smash** — 2.0m, 30°前方锥形, 强力眩晕
+- **平衡系统** — 0–100 分；攻击消耗 10-20 分；归零触发 1 秒失控；被动 5 分/秒恢复
+- **AI 对手** — 状态机（空闲 → 追逐 → 攻击 → 规避）
+- **UGS 联机** — Unity Relay + Lobby，免费 20 人同时在线
+- **双人载具** — 驾驶员控制方向，乘客执行攻击
 
-- **权威服务器**：每 50ms 进行物理更新，生成状态快照广播
-- **增量同步**：首次连接发送全量快照，后续仅发送变化部分（增量压缩），减少带宽占用
-- **客户端预测**：立即应用输入保证操作手感，收到服务器快照后平滑修正
-- **延迟补偿**：服务器保存 200ms 历史轨迹（环形缓冲区），攻击判定时回滚到对应时刻
-- **双人输入合并**：服务器每帧合并驾驶者输入（油门/转向/刹车）与后座输入（动作类型/目标），统一物理更新
-- **断线重连**：客户端心跳检测（每 3 秒），断线后 30 秒内可凭 session token 重连恢复状态
-- **协议版本号**：消息头包含版本号字段，保证客户端/服务器版本兼容
+## 开发前提 / Prerequisites
 
-### 通信协议格式
+- **Unity 2022.3 LTS** 或更新版本
+- Unity Hub 已安装
+- Unity 账户（用于 UGS 服务）
 
-```
-[版本号(1字节)][消息ID(2字节)][序列号(2字节)][数据长度(2字节)][Protobuf数据]
-```
+## 快速开始 / Quick Start
 
-关键消息类型：
-- `LOGIN` / `LOGIN_RESP`：登录认证
-- `CREATE_ROOM` / `JOIN_ROOM` / `LEAVE_ROOM`：房间管理
-- `INPUT_FRAME`：玩家输入帧（驾驶/后座动作）
-- `STATE_SNAPSHOT`：全量/增量状态快照
-- `ATTACK_EVENT`：攻击命中/未命中通知
-- `HEARTBEAT`：心跳保活
-- `RECONNECT`：断线重连请求
-
----
-
-## 开发计划
-
-### 第一阶段：MVP（最小可行产品）—— 预计 8~10 周
-
-| 阶段 | 时间 | 目标 | 产出 |
-|------|------|------|------|
-| 0-环境搭建 | 1~2 周 | C++ 服务器框架 + Unity 基础网络 | Echo 服务器，客户端收发消息验证 |
-| 1-单人驾驶同步 | 3~4 周 | 单人车辆物理、位置同步、客户端预测 | 两个客户端可见彼此车辆移动 |
-| 2-房间与匹配 | 2 周 | 房间创建/加入/离开、基础匹配 | 可建房、入房、开始游戏 |
-| 3-基础部署 | 1~2 周 | Docker 打包、云服务器部署 | 线上可访问的 MVP Demo |
-
-### 第二阶段：核心玩法 —— 预计 8~10 周
-
-| 阶段 | 时间 | 目标 | 产出 |
-|------|------|------|------|
-| 4-双人载具 | 3~4 周 | 双人控制同一车辆、输入合并、平衡值 | 驾驶 + 后座共存并协作 |
-| 5-战斗系统 | 3~4 周 | 踹人/捏刹车/敲打、命中判定、延迟补偿 | 完整战斗体验 |
-| 6-网络优化 | 2 周 | 状态插值、带宽优化、断线重连 | 弱网环境可用 |
-
-### 第三阶段：完善与扩展 —— 预计 6~8 周
-
-| 阶段 | 时间 | 目标 | 产出 |
-|------|------|------|------|
-| 7-组队与 AI | 3~4 周 | 组队模式、FSM AI 对手 | 支持 2v2 和人机对战 |
-| 8-美术与音效 | 2 周 | 特效、UI 打磨、音效集成 | 完善的游戏体验 |
-| 9-文档与演示 | 1~2 周 | 项目文档、演示视频、技术博客 | 完整的求职作品集 |
-
-### 延伸目标（Stretch Goals）
-- 大模型 API 集成，为 AI 对手赋予人格化对话
-- 排行榜与赛季系统
-- 更多赛道地图
-- 手柄操控支持
-
----
-
-## 项目结构（规划）
+### 1. 用 Unity Hub 打开项目
 
 ```
-Road-Rage-Online-Mayhem/
-├── server/                  # C++ 游戏服务器
-│   ├── src/
-│   │   ├── network/         # 网络通信层 (Boost.Asio)
-│   │   ├── game/            # 游戏逻辑（房间、匹配、物理）
-│   │   ├── combat/          # 战斗判定、延迟补偿
-│   │   ├── ai/              # AI 状态机
-│   │   └── db/              # 数据库访问层
-│   ├── proto/               # Protobuf 协议定义
-│   ├── tests/               # 单元测试
+Unity Hub → Open → 选择 unity-project/ 目录
+```
+
+### 2. 安装 UGS 依赖
+
+`Packages/manifest.json` 中已声明所有必需包，Unity 会自动安装：
+- `com.unity.netcode.gameobjects` — Netcode for GameObjects
+- `com.unity.services.relay` — Unity Relay
+- `com.unity.services.lobby` — Unity Lobby
+- `com.unity.services.authentication` — Unity Authentication
+- `com.unity.transport` — Unity Transport (with Relay support)
+
+### 3. 配置 UGS
+
+1. 在 Unity Editor 中：`Edit → Project Settings → Services`
+2. 连接到 Unity Dashboard 中的项目
+3. 启用 **Relay** 和 **Lobby** 服务
+4. UGS 免费套餐自动生效（20 CCU）
+
+### 4. 创建场景
+
+需要创建 3 个场景：
+
+**MainMenu 场景：**
+- 创建 Canvas → 添加 `MainMenuUI` 脚本
+- 创建空 GameObject → 添加 `GameNetworkManager`、`RelayManager`、`LobbyManager`
+- 添加 `NetworkManager` 和 `UnityTransport` 组件
+
+**Lobby 场景：**
+- 创建 Canvas → 添加 `LobbyUI` 脚本
+- 配置房间列表 UI、创建房间面板、等待面板
+
+**Game 场景：**
+- 创建 Canvas → 添加 `GameHUD` 和 `GameOverUI` 脚本
+- 创建空 GameObject → 添加 `RaceManager` 脚本
+- 创建赛道（3D 模型 + 碰撞体）
+- 配置生成点 (SpawnPoints)
+
+### 5. 创建载具 Prefab
+
+摩托车 Prefab 需要以下组件：
+- `NetworkObject`
+- `NetworkTransform`
+- `Rigidbody`
+- `VehicleController`
+- `BalanceSystem`
+- `CombatSystem`
+- `PassengerController`
+- 3D 模型 + Collider
+
+AI 载具额外添加 `AIController` 组件。
+
+### 6. 创建 GameConfig
+
+```
+Assets → Create → RoadRage → GameConfig
+```
+
+所有游戏参数可在 Inspector 中调整。
+
+## 操作方式 / Controls
+
+| 角色 | 按键 | 动作 |
+|------|------|------|
+| 驾驶员 / Driver | W / ↑ | 加速 / Accelerate |
+| 驾驶员 / Driver | S / ↓ | 刹车 / Brake |
+| 驾驶员 / Driver | A / ← | 左转 / Steer left |
+| 驾驶员 / Driver | D / → | 右转 / Steer right |
+| 乘客 / Passenger | 1 | 踢击 / Kick |
+| 乘客 / Passenger | 2 | 抓刹车 / Brake Grab |
+| 乘客 / Passenger | 3 | 重击 / Smash |
+
+## 项目结构 / Project Structure
+
+```
+├── unity-project/                        # Unity 客户端项目
+│   ├── Packages/
+│   │   └── manifest.json                 # UGS + Netcode 包依赖
+│   └── Assets/
+│       └── Scripts/
+│           ├── Network/                  # 网络层
+│           │   ├── GameNetworkManager.cs # UGS 初始化 + 认证 + 连接管理
+│           │   ├── RelayManager.cs       # Unity Relay 管理（20 CCU 免费）
+│           │   ├── LobbyManager.cs       # Unity Lobby 房间管理
+│           │   └── PlayerNetwork.cs      # 玩家网络同步
+│           ├── Gameplay/                 # 游戏逻辑
+│           │   ├── VehicleController.cs  # 载具物理（服务器权威）
+│           │   ├── BalanceSystem.cs      # 平衡系统 (0-100)
+│           │   ├── CombatSystem.cs       # 战斗系统（踢击/抓刹车/重击）
+│           │   ├── PassengerController.cs# 乘客控制 + 目标锁定
+│           │   ├── AIController.cs       # AI 状态机
+│           │   └── RaceManager.cs        # 比赛流程管理
+│           ├── UI/                       # UI 脚本
+│           │   ├── MainMenuUI.cs         # 登录界面
+│           │   ├── LobbyUI.cs            # 大厅界面
+│           │   ├── GameHUD.cs            # 游戏 HUD
+│           │   └── GameOverUI.cs         # 游戏结束界面
+│           └── Config/
+│               └── GameConfig.cs         # ScriptableObject 游戏配置
+├── server/                               # C++ 参考服务器（可选）
 │   ├── CMakeLists.txt
-│   └── Dockerfile
-├── client/                  # Unity 客户端
-│   ├── Assets/
-│   │   ├── Scripts/
-│   │   │   ├── Network/     # 网络通信模块
-│   │   │   ├── Vehicle/     # 车辆控制与物理
-│   │   │   ├── Combat/      # 战斗动作与表现
-│   │   │   └── UI/          # 用户界面
-│   │   ├── Prefabs/
-│   │   ├── Scenes/
-│   │   └── Audio/
-│   └── ProjectSettings/
-├── docs/                    # 项目文档
-├── Introduction.md          # 项目开发介绍文档
-└── README.md                # 本文件
+│   ├── src/                              # 网络/游戏/数据模块
+│   └── tests/                            # 单元测试
+└── Introduction.md                       # 原始设计文档
 ```
 
----
+## 联机流程 / Online Flow
 
-## 环境要求
+```
+1. 启动游戏 → MainMenuUI
+2. 自动登录 UGS (匿名认证)
+3. 进入大厅 → LobbyUI
+4. 房主创建 Lobby → 其他玩家加入
+5. 房主点击"开始" → 创建 Relay 分配 → 获取 Join Code
+6. Join Code 通过 Lobby 数据同步给所有玩家
+7. 所有玩家通过 Relay 连接 → Netcode 启动
+8. 主机加载 Game 场景（NetworkManager 同步）
+9. RaceManager 生成载具 → 倒计时 → 比赛开始
+10. 服务器权威物理 + 战斗判定
+11. 到达终点 → GameOverUI → 返回大厅
+```
 
-### 开发环境
-- **操作系统**：Windows 10/11（开发），Ubuntu 22.04（服务器部署）
-- **C++ 编译器**：GCC 11+ / MSVC 2022（支持 C++17）
-- **构建工具**：CMake 3.20+
-- **Unity**：2022 LTS
-- **数据库**：MySQL 8.0+，Redis 6.0+
+## UGS 免费套餐说明 / UGS Free Tier
 
-### 主要依赖
-- **Boost.Asio** ── 跨平台异步网络库
-- **Protobuf** ── 消息序列化
-- **MySQL Connector/C++** ── 数据库访问
-- **hiredis** ── Redis 客户端
-- **Google Test** ── C++ 单元测试框架
+| 服务 | 免费额度 | 用途 |
+|------|----------|------|
+| **Relay** | 20 CCU | NAT 穿透，玩家间通信 |
+| **Lobby** | 免费 | 房间创建和管理 |
+| **Authentication** | 免费 | 匿名登录 |
 
-### 硬件要求
-- **开发机**：8GB+ 内存，独立显卡（Unity 渲染需要）
-- **服务器（测试/开发）**：1 核 2GB 云服务器即可（学生优惠可用）
-- **服务器（生产/多房间）**：推荐 2 核 4GB+，支持 50~100 人同时在线场景
+> 20 CCU = 最多 20 人同时在线游戏。对于本项目（每场 2-6 人），足够同时运行 3-10 场比赛。
 
----
+## C++ 参考服务器 / C++ Reference Server
 
-## 快速开始
+`server/` 目录包含独立的 C++ 游戏服务器（Boost.Asio TCP），用于：
+- 学习服务器端游戏物理实现
+- 对比 Unity Netcode 与自定义服务器架构
+- 可作为未来专用服务器的基础
 
-> ⚠️ 项目处于规划阶段，以下为预期的构建流程。
-
-### 服务器端
+构建方法：
 ```bash
-# 克隆仓库
-git clone https://github.com/qiyingshicaiji/Road-Rage-Online-Mayhem.git
-cd Road-Rage-Online-Mayhem/server
-
-# 构建
-mkdir build && cd build
-cmake ..
-make -j$(nproc)
-
-# 运行
-./road_rage_server --port 9527
+cd server && mkdir build && cd build && cmake .. && make -j$(nproc)
+./test_protocol && ./test_game  # 运行测试
 ```
 
-### 客户端
-1. 用 Unity 2022 LTS 打开 `client/` 目录
-2. 在 `Assets/Scripts/Network/NetworkConfig.cs` 中配置服务器地址
-3. 点击 Play 运行
+## 设计文档 / Design Document
 
-### Docker 部署
-```bash
-cd server
-docker build -t road-rage-server .
-docker run -d -p 9527:9527/tcp -p 9528:9528/udp road-rage-server
-```
-
----
-
-## 项目亮点
-
-- **双人载具合作机制**：独创的驾驶 + 后座分工，输入合并与扰动模拟的技术实现
-- **混合网络同步方案**：UDP 实时位置 + TCP 可靠事件，延迟补偿保证公平
-- **权威服务器架构**：C++ 高性能服务器处理所有游戏逻辑，防止作弊
-- **完整工程化实践**：从协议设计、数据库、断线重连到 Docker 部署，覆盖游戏服务器开发全流程
-- **渐进式开发**：MVP 优先策略，确保每个阶段都有可展示的成果
-
----
-
-## 许可证
-
-本项目仅供学习与个人作品展示使用。
+详见 [Introduction.md](Introduction.md)，包含：
+- 详细游戏机制和平衡设计
+- 网络协议规格
+- 数据库设计
+- 6 阶段开发路线图
